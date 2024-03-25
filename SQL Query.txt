@@ -1,0 +1,73 @@
+select * from employees;
+
+create table project1 as select * from employees where 1=2;
+
+
+commit;
+
+
+select * from project1;
+
+select * from employees;
+
+Desc employees;
+Desc project1;
+
+select * from employees where employee_id is null and department_id =90;
+
+Desc employees;
+Desc project1;
+
+
+select * from project1;
+
+Data completeness Test
+
+count
+Duplicate
+Mapping validation
+
+count
+
+select count(*) from employees where department_id =90;
+select count(*) from project1 where department_id =90;
+
+Duplicate
+
+select employee_id,first_name, count (*) from employees group by employee_id,first_name having count (*)>1;
+
+select employee_id,first_name, count (*) from project1 group by employee_id,first_name having count (*)>1;
+
+Mapping validation
+
+select * from employees where department_id =90
+minus
+select * from project1 where department_id =90;
+
+select * from project1 where department_id =90
+minus
+select * from employees where department_id =90;
+
+select * from project1;
+
+
+count
+
+select count(*) from employees where department_id =20;
+select count(*) from project1 where department_id =20;
+
+Duplicate
+
+select employee_id,first_name, count (*) from employees group by employee_id,first_name having count (*)>1;
+
+select employee_id,first_name, count (*) from project1 group by employee_id,first_name having count (*)>1;
+
+Mapping validation
+
+select * from employees where department_id =20
+minus
+select * from project1 where department_id =20;
+
+select * from project1 where department_id =20
+minus
+select * from employees where department_id =20;
