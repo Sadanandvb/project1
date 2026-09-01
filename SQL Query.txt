@@ -71,3 +71,262 @@ select * from project1 where department_id =20;
 select * from project1 where department_id =20
 minus
 select * from employees where department_id =20;
+
+---- Below script was developed by referencing the queries above and adding additional explanations for better understanding.
+
+
+-- ============================================================
+-- ETL END-TO-END TESTING
+-- Source Table : EMPLOYEES
+-- Target Table : PROJECT1
+-- ============================================================
+
+
+-- ============================================================
+-- 1. SOURCE DATA VALIDATION
+-- ============================================================
+
+-- View source data
+SELECT *
+FROM employees;
+
+-- Check source table structure
+DESC employees;
+
+
+-- ============================================================
+-- 2. CREATE TARGET TABLE
+-- ============================================================
+
+-- Create PROJECT1 with the same structure as EMPLOYEES.
+-- WHERE 1=2 prevents data from being copied.
+-- Therefore, only the table structure is created.
+
+CREATE TABLE project1 AS
+SELECT *
+FROM employees
+WHERE 1 = 2;
+
+COMMIT;
+
+-- Verify target table
+SELECT *
+FROM project1;
+
+-- Check target table structure
+DESC project1;
+
+
+-- ============================================================
+-- 3. NULL / MANDATORY FIELD VALIDATION
+-- ============================================================
+
+-- Check whether employee_id is NULL
+-- for employees belonging to department 90.
+
+SELECT *
+FROM employees
+WHERE employee_id IS NULL
+  AND department_id = 90;
+
+
+-- ============================================================
+-- 4. DATA COMPLETENESS / COUNT VALIDATION
+-- ============================================================
+
+-- Compare source and target record counts
+-- for department 90.
+
+-- SOURCE COUNT
+SELECT COUNT(*)
+FROM employees
+WHERE department_id = 90;
+
+-- TARGET COUNT
+SELECT COUNT(*)
+FROM project1
+WHERE department_id = 90;
+
+-- Expected Result:
+-- SOURCE COUNT = TARGET COUNT
+
+
+-- ============================================================
+-- 5. DUPLICATE VALIDATION
+-- ============================================================
+
+-- Check duplicate employees in SOURCE.
+-- employee_id + first_name are used as the
+-- duplicate-checking combination.
+
+SELECT employee_id,
+       first_name,
+       COUNT(*) AS duplicate_count
+FROM employees
+GROUP BY employee_id,
+         first_name
+HAVING COUNT(*) > 1;
+
+
+-- Check duplicate employees in TARGET.
+
+SELECT employee_id,
+       first_name,
+       COUNT(*) AS duplicate_count
+FROM project1
+GROUP BY employee_id,
+         first_name
+HAVING COUNT(*) > 1;
+
+-- Expected Result:
+-- No rows should be returned.
+
+
+-- ============================================================
+-- 6. MAPPING / SOURCE-TO-TARGET VALIDATION
+-- ============================================================
+
+-- Check records available in SOURCE
+-- but missing in TARGET.
+
+SELECT *
+FROM employees
+WHERE department_id = 90
+
+MINUS
+
+SELECT *
+FROM project1
+WHERE department_id = 90;
+
+-- Expected Result:
+-- No rows should be returned.
+
+
+-- Check records available in TARGET
+-- but missing in SOURCE.
+
+SELECT *
+FROM project1
+WHERE department_id = 90
+
+MINUS
+
+SELECT *
+FROM employees
+WHERE department_id = 90;
+
+-- Expected Result:
+-- No rows should be returned.
+
+
+-- ============================================================
+-- 7. DEPARTMENT 20 VALIDATION
+-- ============================================================
+
+-- Repeat the same ETL validations for another
+-- business condition: department_id = 20.
+
+
+-- ------------------------------------------------------------
+-- 7.1 COUNT VALIDATION
+-- ------------------------------------------------------------
+
+-- SOURCE COUNT
+SELECT COUNT(*)
+FROM employees
+WHERE department_id = 20;
+
+-- TARGET COUNT
+SELECT COUNT(*)
+FROM project1
+WHERE department_id = 20;
+
+-- Expected Result:
+-- SOURCE COUNT = TARGET COUNT
+
+
+-- ------------------------------------------------------------
+-- 7.2 DUPLICATE VALIDATION
+-- ------------------------------------------------------------
+
+-- Check duplicates in SOURCE.
+
+SELECT employee_id,
+       first_name,
+       COUNT(*) AS duplicate_count
+FROM employees
+GROUP BY employee_id,
+         first_name
+HAVING COUNT(*) > 1;
+
+
+-- Check duplicates in TARGET.
+
+SELECT employee_id,
+       first_name,
+       COUNT(*) AS duplicate_count
+FROM project1
+GROUP BY employee_id,
+         first_name
+HAVING COUNT(*) > 1;
+
+-- Expected Result:
+-- No rows should be returned.
+
+
+-- ------------------------------------------------------------
+-- 7.3 MAPPING VALIDATION
+-- ------------------------------------------------------------
+
+-- SOURCE records missing from TARGET.
+
+SELECT *
+FROM employees
+WHERE department_id = 20
+
+MINUS
+
+SELECT *
+FROM project1
+WHERE department_id = 20;
+
+
+-- TARGET records missing from SOURCE.
+
+SELECT *
+FROM project1
+WHERE department_id = 20
+
+MINUS
+
+SELECT *
+FROM employees
+WHERE department_id = 20;
+
+-- Expected Result:
+-- No rows should be returned.
+
+
+-- ============================================================
+-- 8. FINAL TARGET DATA CHECK
+-- ============================================================
+
+-- Review the data loaded into the target table.
+
+SELECT *
+FROM project1;
+
+
+-- ============================================================
+-- ETL TESTING CHECKLIST
+-- ============================================================
+
+-- 1. Source data validation
+-- 2. Target structure validation
+-- 3. NULL validation
+-- 4. Record count validation
+-- 5. Duplicate validation
+-- 6. Source-to-target mapping validation
+-- 7. Business rule validation
+-- 8. Final target data validation
